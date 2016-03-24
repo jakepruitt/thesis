@@ -17,3 +17,7 @@ My sources and guides will primarily be Dr. Hodges, Cameron Mercer and the rest 
 - Ju et al. Dual Contouring of Hermite Data, SIGGRAPH 2002
 - Schaefer & Warren. Dual Contouring: "The Secret Sauce", White Paper
 - links to many papers: https://swiftcoder.wordpress.com/planets/isosurface-extraction
+- http://cesiumjs.org/
+- https://github.com/AnalyticalGraphicsInc/cesium
+- https://www.mapbox.com/blog/elevation-drone-data-surface-api/
+- https://github.com/mapbox/pointcloud
