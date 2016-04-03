@@ -1,3 +1,5 @@
+<img width="1392" alt="screenshot 2016-04-02 19 22 26" src="https://cloud.githubusercontent.com/assets/5084263/14230405/4ffce754-f90a-11e5-84ae-1e2489444e9e.png">
+
 # Thesis Prospectus
 Currently in the Earth and Space Exploration laboratory, geochronology is an incredibly important part of the work and papers that are produced by the department. In order to calculate the age of a rock, an ablation must be made in the rock’s face and a laser pointed into the ablation map the depth of the entire pit. The important step in this process is the calculation of the volume of the pit, which is done currently in a Matlab function created by the students of the lab. This calculation has been used in publications to date, but there are not currently rigorously tested measures of the algorithm’s accuracy.
 
