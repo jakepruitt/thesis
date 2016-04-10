@@ -1,5 +1,7 @@
 <img width="1392" alt="screenshot 2016-04-02 19 22 26" src="https://cloud.githubusercontent.com/assets/5084263/14230405/4ffce754-f90a-11e5-84ae-1e2489444e9e.png">
 
+https://skfb.ly/MRGt
+
 # Thesis Prospectus
 Currently in the Earth and Space Exploration laboratory, geochronology is an incredibly important part of the work and papers that are produced by the department. In order to calculate the age of a rock, an ablation must be made in the rock’s face and a laser pointed into the ablation map the depth of the entire pit. The important step in this process is the calculation of the volume of the pit, which is done currently in a Matlab function created by the students of the lab. This calculation has been used in publications to date, but there are not currently rigorously tested measures of the algorithm’s accuracy.
 
@@ -19,6 +21,12 @@ My sources and guides will primarily be Dr. Hodges, Cameron Mercer and the rest 
 - Ju et al. Dual Contouring of Hermite Data, SIGGRAPH 2002
 - Schaefer & Warren. Dual Contouring: "The Secret Sauce", White Paper
 - links to many papers: https://swiftcoder.wordpress.com/planets/isosurface-extraction
+- http://research.microsoft.com/en-us/um/people/hoppe/poissonrecon.pdf
+- http://www.cs.jhu.edu/%7Emisha/Code/PoissonRecon/Version5.71/
+- http://research.microsoft.com/pubs/155416/kinectfusion-uist-comp.pdf
+- http://blog.thematicmapping.org/2013/10/terrain-building-with-threejs.html
+- https://github.com/cnr-isti-vclab/meshlabjs
+- http://vcg.isti.cnr.it/vcglib/
 - http://cesiumjs.org/
 - https://github.com/AnalyticalGraphicsInc/cesium
 - https://www.mapbox.com/blog/elevation-drone-data-surface-api/
