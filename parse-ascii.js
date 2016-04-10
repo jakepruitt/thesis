@@ -5,9 +5,10 @@ var split = require('split');
 function parseAscii() {
     var parseTransform = new stream.Transform();
     var y = 0;
+    var finalX = 0;
     var start = false, stop = false;
     parseTransform._transform = function(buf, enc, callback) {
-        var line = buf.toString();
+        var line = buf.toString().trim();
         if (line == '# Start of Data:') {
             start = true;
             return callback();
@@ -16,6 +17,8 @@ function parseAscii() {
             var data = line.split('\t');
             if (data.length === 1) {
                 stop = true;
+                console.log('cols:',finalX);
+                console.log('rows:',y);
                 return callback();
             }
             data.forEach(function(z, x) {
@@ -28,6 +31,7 @@ function parseAscii() {
                     }
                 };
                 parseTransform.push(JSON.stringify(obj) + '\n');
+                finalX = x;
             });
             y++;
         }
