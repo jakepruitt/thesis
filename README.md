@@ -22,6 +22,7 @@ My sources and guides will primarily be Dr. Hodges, Cameron Mercer and the rest 
 - Schaefer & Warren. Dual Contouring: "The Secret Sauce", White Paper
 - links to many papers: https://swiftcoder.wordpress.com/planets/isosurface-extraction
 - http://research.microsoft.com/en-us/um/people/hoppe/poissonrecon.pdf
+- http://www.cs.jhu.edu/~misha/MyPapers/ToG13.pdf
 - http://www.cs.jhu.edu/%7Emisha/Code/PoissonRecon/Version5.71/
 - http://research.microsoft.com/pubs/155416/kinectfusion-uist-comp.pdf
 - http://blog.thematicmapping.org/2013/10/terrain-building-with-threejs.html
