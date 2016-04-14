@@ -46,12 +46,22 @@
 
 			var container;
 
-			var camera, cameraTarget, scene, renderer, controls;
+			var mesh, camera, cameraTarget, scene, renderer, controls;
+
+            var raycaster, point, mouse, clock, toggle = 0, intersection = null, vertices = [], spheresIndex = 0, threshold = 0.1, pointSize = 0.05;
+
+            var sphereMaterial, sphereGeometry;
 
 			init();
 			animate();
 
 			function init() {
+
+                // Interaction things
+                mouse = new THREE.Vector2();
+                point = new THREE.Vector2();
+                point.x = null;
+                point.y = null;
 
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
@@ -60,6 +70,7 @@
                 camera.position.z = 100;
 
 				scene = new THREE.Scene();
+                clock = new THREE.Clock();
 				// PLY file
 
 				var loader = new THREE.PLYLoader();
@@ -68,14 +79,12 @@
 					geometry.computeFaceNormals();
 
 					var material = new THREE.MeshStandardMaterial( { color: 0x0055ff } );
-					var mesh = new THREE.Mesh( geometry, material );
+                    material.side = THREE.DoubleSide;
+					mesh = new THREE.Mesh( geometry, material );
 
 					mesh.position.x = -40.0;
 					mesh.position.y = -25.0;
 					mesh.scale.multiplyScalar( 0.1 );
-
-					mesh.castShadow = true;
-					mesh.receiveShadow = true;
 
 					scene.add( mesh );
 
@@ -87,6 +96,11 @@
 
 				addShadowedLight( 1, 1, 1, 0xffffff, 1.35 );
 				addShadowedLight( 0.5, 1, -1, 0xffaa00, 1 );
+
+                // Spheres
+
+                sphereGeometry = new THREE.SphereGeometry( 0.1, 64, 64 );
+                sphereMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, shading: THREE.FlatShading } );
 
 				// renderer
 
@@ -100,18 +114,35 @@
 				renderer.shadowMap.enabled = true;
 				renderer.shadowMap.cullFace = THREE.CullFaceBack;
 
+
                 // Controls
-
-
                 controls = new THREE.TrackballControls(camera); 
 
 				container.appendChild( renderer.domElement );
 
+                // Raycasted points
+                raycaster = new THREE.Raycaster();
+                raycaster.params.Points.threshold = threshold;
+
 				// resize
 
 				window.addEventListener( 'resize', onWindowResize, false );
+                document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+                document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 
 			}
+
+            function onDocumentMouseMove( event ) {
+                event.preventDefault();
+                mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+                mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+            }
+
+            function onDocumentMouseDown( event ) {
+                event.preventDefault();
+                point.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+                point.y = - (event.clientY / window.innerHeight ) * 2 + 1;
+            }
 
 			function addShadowedLight( x, y, z, color, intensity ) {
 
@@ -155,11 +186,27 @@
 
 			}
 
+
 			function render() {
 
                 controls.update();
-				renderer.render( scene, camera );
 
+                if (point.x != null) {
+                    raycaster.setFromCamera( point, camera );
+                    var intersections = raycaster.intersectObject( mesh );
+                    intersection = ( intersections.length ) > 0 ? intersections[ 0 ] : null;
+
+                    var vertex = new THREE.Mesh( sphereGeometry, sphereMaterial );
+                    scene.add( vertex );
+                    vertex.position.copy( intersection.point );
+                    vertex.scale.set( 1, 1, 1 );
+                    point.x = null;
+                    point.y = null;
+                }
+
+                toggle += clock.getDelta();
+
+				renderer.render( scene, camera );
 			}
 
 		</script>
