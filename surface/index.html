@@ -10,7 +10,12 @@
 				background-color: #000000;
 				margin: 0px;
 				overflow: hidden;
+                cursor: crosshair;
 			}
+
+            .pointer {
+                cursor: pointer;
+            }
 
 			#info {
 				color: #fff;
@@ -50,6 +55,8 @@
 
             var raycaster, point, mouse, clock, toggle = 0, intersection = null, vertices = [], spheresIndex = 0, threshold = 0.1, pointSize = 0.05;
 
+            var clicked = false, movingline = null, createmode = true;
+
             var sphereMaterial, sphereGeometry;
 
 			init();
@@ -60,8 +67,6 @@
                 // Interaction things
                 mouse = new THREE.Vector2();
                 point = new THREE.Vector2();
-                point.x = null;
-                point.y = null;
 
 				container = document.createElement( 'div' );
 				document.body.appendChild( container );
@@ -99,7 +104,7 @@
 
                 // Spheres
 
-                sphereGeometry = new THREE.SphereGeometry( 0.1, 64, 64 );
+                sphereGeometry = new THREE.SphereGeometry( 0.5, 32, 32 );
                 sphereMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, shading: THREE.FlatShading } );
 
 				// renderer
@@ -142,6 +147,7 @@
                 event.preventDefault();
                 point.x = ( event.clientX / window.innerWidth ) * 2 - 1;
                 point.y = - (event.clientY / window.innerHeight ) * 2 + 1;
+                clicked = true;
             }
 
 			function addShadowedLight( x, y, z, color, intensity ) {
@@ -191,20 +197,56 @@
 
                 controls.update();
 
-                if (point.x != null) {
-                    raycaster.setFromCamera( point, camera );
+                if (createmode) {
+                    raycaster.setFromCamera( mouse, camera );
                     var intersections = raycaster.intersectObject( mesh );
                     intersection = ( intersections.length ) > 0 ? intersections[ 0 ] : null;
 
-                    var vertex = new THREE.Mesh( sphereGeometry, sphereMaterial );
-                    scene.add( vertex );
-                    vertex.position.copy( intersection.point );
-                    vertex.scale.set( 1, 1, 1 );
-                    point.x = null;
-                    point.y = null;
-                }
+                    if ( toggle > 0.02 && intersection !== null && movingline !== null) {
+                        movingline.geometry.vertices[0] = intersection.point;
+                        movingline.geometry.verticesNeedUpdate = true;
+                    }
 
-                toggle += clock.getDelta();
+                    if (vertices.length > 0) {
+                        var originalIntersections = raycaster.intersectObject( vertices[0] );
+                        var originalIntersection = (originalIntersections.length) > 0 ? originalIntersections[ 0 ] : null;
+
+                        if (originalIntersection !== null) {
+                            document.body.className = 'pointer';
+                        } else if (document.body.className === 'pointer') {
+                            document.body.className = '';
+                        }
+                    }
+
+                    toggle += clock.getDelta();
+
+                    if (clicked) {
+                        raycaster.setFromCamera( point, camera );
+                        var intersections = raycaster.intersectObject( mesh );
+                        intersection = ( intersections.length ) > 0 ? intersections[ 0 ] : null;
+
+                        var vertex = new THREE.Mesh( sphereGeometry, sphereMaterial );
+                        scene.add( vertex );
+                        vertex.position.copy( intersection.point );
+                        vertex.scale.set( 1, 1, 1 );
+
+                        var lineGeom = new THREE.Geometry();
+                        var lineMaterial = new THREE.LineBasicMaterial({
+                            color: 0xee3124,
+                            linewidth: 20
+                        });
+                        movingline = new THREE.Line(lineGeom, lineMaterial);
+                        scene.add(movingline);
+                        movingline.geometry.vertices = [intersection.point, intersection.point];
+                        movingline.geometry.scale(1,1,1);
+
+                        vertices.push(vertex);
+
+                        clicked = false;
+                    }
+
+                    toggle += clock.getDelta();
+                }
 
 				renderer.render( scene, camera );
 			}
