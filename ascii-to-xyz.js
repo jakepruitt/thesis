@@ -2,7 +2,7 @@ var stream = require('stream');
 var combine = require('stream-combiner');
 var split = require('split');
 
-function asciiToXYZ() {
+module.exports = function asciiToXYZ(opts) {
     var asciiToXYZTransform = new stream.Transform();
     var y = 0;
     var start = false, stop = false;
@@ -29,7 +29,7 @@ function asciiToXYZ() {
     return combine(split(), asciiToXYZTransform);
 }
 
-if (require.main) {
+if (require.main === module) {
     var fs = require('fs');
     var rawStream = fs.createReadStream(process.argv[2]);
     rawStream.pipe(asciiToXYZ())

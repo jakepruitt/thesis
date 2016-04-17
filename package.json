@@ -4,7 +4,8 @@
   "description": "Currently in the Earth and Space Exploration laboratory, geochronology is an incredibly important part of the work and papers that are produced by the department. In order to calculate the age of a rock, an ablation must be made in the rock’s face and a laser pointed into the ablation map the depth of the entire pit. The important step in this process is the calculation of the volume of the pit, which is done currently in a Matlab function created by the students of the lab. This calculation has been used in publications to date, but there are not currently rigorously tested measures of the algorithm’s accuracy.",
   "main": "parse-ascii.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./backend/index.js"
   },
   "repository": {
     "type": "git",
@@ -17,6 +18,9 @@
   },
   "homepage": "https://github.com/jakepruitt/thesis#readme",
   "dependencies": {
+    "express": "^4.13.4",
+    "fastlog": "^1.1.0",
+    "morgan": "^1.7.0",
     "split": "^1.0.0",
     "stream-combiner": "^0.2.2"
   }

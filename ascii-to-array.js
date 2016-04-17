@@ -2,13 +2,13 @@ var stream = require('stream');
 var combine = require('stream-combiner');
 var split = require('split');
 
-function asciiToArray() {
+module.exports = function asciiToArray() {
     var asciiToArrayTransform = new stream.Transform();
     var total = [];
     var start = false, stop = false;
     asciiToArrayTransform._transform = function(buf, enc, callback) {
-        var line = buf.toString().trim();
-        if (line == '# Start of Data:') {
+        var line = buf.toString();
+        if (line.indexOf('Start') > -1) {
             start = true;
             return callback();
         }
@@ -22,14 +22,16 @@ function asciiToArray() {
                 data.forEach(function(z) {
                     total.push(Math.round(Number(z)/40+2000));
                 });
+                return callback();
             }
+        } else {
+            return callback();
         }
-        return callback();
     };
     return combine(split(), asciiToArrayTransform);
 }
 
-if (require.main) {
+if (require.main === module) {
     var fs = require('fs');
     var rawStream = fs.createReadStream(process.argv[2]);
     rawStream.pipe(asciiToArray())
