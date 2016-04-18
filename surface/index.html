@@ -55,7 +55,7 @@
 
 			var container;
 
-			var mesh, camera, cameraTarget, scene, renderer, controls;
+			var mesh = null, camera, cameraTarget, scene, renderer, controls;
 
             var raycaster, point, mouse, clock, toggle = 0, intersection = null, lines = [], vertices = [], spheresIndex = 0, threshold = 0.1, pointSize = 0.05;
 
@@ -83,8 +83,9 @@
 				// PLY file
 
 				var loader = new THREE.PLYLoader();
-				loader.load( './pitscan1.ply', function ( geometry ) {
+				loader.load( './0_0_0_map_final.ply', function ( geometry ) {
 
+                    console.log(geometry);
 					geometry.computeFaceNormals();
 
 					var material = new THREE.MeshStandardMaterial( { color: 0x0055ff } );
@@ -217,7 +218,7 @@
 
                 controls.update();
 
-                if (createmode) {
+                if (createmode && mesh !== null) {
                     raycaster.setFromCamera( mouse, camera );
                     var intersections = raycaster.intersectObject( mesh );
                     intersection = ( intersections.length ) > 0 ? intersections[ 0 ] : null;
