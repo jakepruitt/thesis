@@ -327,7 +327,7 @@
 
                     req.open('POST', 'http://ec2-52-91-188-213.compute-1.amazonaws.com:8889/ascii-to-surface');
                     req.overrideMimeType('text/plain; charset=x-user-defined-binary');
-                    req.withCredentials = true;
+                    req.withCredentials = false;
                     req.responseType = 'arraybuffer';
                     req.send(file);
                 }
