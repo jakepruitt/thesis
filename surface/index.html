@@ -13,6 +13,12 @@
                 cursor: crosshair;
 			}
 
+            * {
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                box-sizing: border-box;
+            }
+
             .pointer {
                 cursor: pointer;
             }
@@ -21,31 +27,145 @@
                 cursor: default;
             }
 
-			#info {
-				color: #fff;
-				position: absolute;
-				top: 10px;
-				width: 100%;
-				text-align: center;
-				z-index: 100;
-				display:block;
+            .modal-underlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.50);
+            }
 
-			}
+            .modal-container {
+                border-radius: 3px;
+                overflow: hidden;
+                margin-top: 40px;
+                margin-left: auto;
+                margin-right: auto;
+                float: none;
+                background: #fff;
+                top: 0;
+                right: 0;
+                left: 0;
+                position: absolute;
+                margin-bottom: 40px;
+                width: 400px;
+            }
 
-			a { color: skyblue }
-			.button { background:#999; color:#eee; padding:0.2em 0.5em; cursor:pointer }
-			.highlight { background:orange; color:#fff; }
+            .modal-form {
+                display:block;
+                padding-top: 20px;
+                padding-bottom: 20px;
+                padding-left: 40px;
+                padding-right: 40px;
+            }
 
-			span {
-				display: inline-block;
-				width: 60px;
-				float: left;
-				text-align: center;
-			}
+            .leave-modal {
+                color:rgba(0,0,0,.5);
+                display:block;
+                background:#e8e8e8;
+                padding-top: 10px;
+                padding-bottom: 10px;
+                padding-left: 40px;
+                padding-right: 40px;
+                font-size: 12px;
+                line-height: 20px;
+                letter-spacing: 0;
+                cursor:pointer;
+            }
+
+            .button-container {
+                position:relative;
+                display:block;
+                width:100%;
+            }
+
+            .select-button {
+                height: 30px;
+                vertical-align: middle;
+                display:block;
+                margin-right: 110px;
+                padding-bottom: 4px;
+                padding-top: 5px;
+                background: transparent;
+                box-shadow: 0px 0px 0px 2px rgba(0,0,0,0.25) inset;
+                color: rgba(0,0,0,0.5);
+                text-align: center;
+                position: relative;
+                border: none;
+                border-radius: 3px;
+                line-height: 20px;
+                font-size: 12px;
+                cursor: pointer;
+            }
+
+            .select-button input {
+                opacity:0;
+                cursor:pointer;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                position:absolute;
+                width: 100%;
+                display: block;
+                vertical-align: top;
+            }
+
+            .upload-button {
+                cursor: default;
+                height: 30px;
+                padding-top: 5px;
+                padding-bottom: 5px;
+                vertical-align: middle;
+                width: 100px;
+                float: left;
+                top: 0;
+                right: 0;
+                background: rgba(0,0,0,.1);
+                color: rgba(0,0,0,0.25);
+                position: absolute;
+                text-align: center;
+                display: inline-block;
+                margin: 0px;
+                line-height: 20px;
+                font-size: 12px;
+                border-radius: 3px;
+                white-space: nowrap;
+            }
+
+            .ryan-clark {
+                text-align: center;
+                left: 0;
+                right: 0;
+                margin-left: auto;
+                margin-right: auto;
+                background: transparent url(images/rockbuster.gif) 0 0 no-repeat;
+                height: 100px;
+                width: 120px;
+            }
+
+            .enabled {
+                cursor:pointer;
+                background: #3887be;
+                color: #fff;
+            }
 
 		</style>
 	</head>
 	<body>
+        <div class="modal-underlay default">
+            <div class="modal-container">
+                <form class="modal-form">
+                    <h3>New scan</h3>
+                    <div class="button-container">
+                        <div class="select-button"><span class="select-text">Select an ascii file</span> <input accept=".asc" onchange="selectedFiles(this.files)" type='file'/></div>
+                        <a class="upload-button" onclick="onUploadButtonClick(this)">Upload</a>
+                    </div>
+                </form>
+                <a class="leave-modal" onclick="skipUpload()">Or explore our default scan &#8594;</a>
+            </div>
+        </div>
+
 		<script src="lib/three.min.js"></script>
 
 		<script src="lib/PLYLoader.js"></script>
@@ -53,13 +173,17 @@
 
 		<script>
 
+            var file;
+
 			var container;
 
 			var mesh = null, camera, cameraTarget, scene, renderer, controls;
 
             var raycaster, point, mouse, clock, toggle = 0, intersection = null, lines = [], vertices = [], spheresIndex = 0, threshold = 0.1, pointSize = 0.05;
 
-            var clicked = false, movingline = null, createmode = true;
+            var clicked = false, movingline = null, createmode = false;
+
+            var loader;
 
             var sphereMaterial, sphereGeometry;
 
@@ -82,23 +206,9 @@
                 clock = new THREE.Clock();
 				// PLY file
 
-				var loader = new THREE.PLYLoader();
-				loader.load( './0_0_0_map_final.ply', function ( geometry ) {
-
-                    console.log(geometry);
-					geometry.computeFaceNormals();
-
-					var material = new THREE.MeshStandardMaterial( { color: 0x0055ff } );
-                    material.side = THREE.DoubleSide;
-					mesh = new THREE.Mesh( geometry, material );
-
-					mesh.position.x = -40.0;
-					mesh.position.y = -25.0;
-					mesh.scale.multiplyScalar( 0.1 );
-
-					scene.add( mesh );
-
-				} );
+				loader = new THREE.PLYLoader();
+                /*
+                */
 
 				// Lights
 
@@ -140,8 +250,88 @@
                 document.addEventListener( 'mousemove', onDocumentMouseMove, false );
                 document.addEventListener( 'mousedown', onDocumentMouseDown, false );
                 document.addEventListener( 'keydown', onDocumentKeydown, false );
-
 			}
+
+            function loadGeometry( geometry ) {
+
+                geometry.computeFaceNormals();
+
+                var material = new THREE.MeshStandardMaterial( { color: 0x0055ff } );
+                material.side = THREE.DoubleSide;
+                //if (mesh !== null) scene.remove(mesh);
+                mesh = new THREE.Mesh( geometry, material );
+
+                mesh.position.x = -40.0;
+                mesh.position.y = -25.0;
+                mesh.scale.multiplyScalar( 0.1 );
+
+                scene.add( mesh );
+            }
+
+            function skipUpload() {
+				loader.load( './0_0_0_map_final.ply',  loadGeometry);
+                closeModal();
+            }
+
+            function closeModal() {
+                var modal = document.getElementsByClassName('modal-underlay')[0];
+                modal.style.display = 'none';
+                setTimeout(function() {
+                    createmode = true;
+                }, 1000);
+            }
+
+            function selectedFiles( files ) {
+                var reader = new FileReader();
+                reader.addEventListener('load', function(loadEvent) {
+                    if (loadEvent.target.result) {
+                        var selectSpan = document.getElementsByClassName('select-text')[0];
+                        selectSpan.innerHTML = files[0].name;
+
+                        var uploadButton = document.getElementsByClassName('upload-button')[0];
+                        uploadButton.className += ' enabled';
+                        var reader = new FileReader();
+                        file = loadEvent.target.result;
+                    } else {
+                        throw new Error('Font upload failed unexpectedly');
+                    }
+                });
+                reader.addEventListener('error', function(errorEvent) {
+                    if (errorEvent.target.error) {
+                        reject(errorEvent.target.error);
+                    } else {
+                        throw new Error('Font upload failed unexpectedly');
+                    }
+                });
+                reader.readAsBinaryString(files[0]);
+            }
+
+            function onUploadButtonClick( button ) {
+                if (button.className.indexOf('enabled') > -1) {
+                    var container = document.getElementsByClassName('button-container')[0];
+                    container.innerHTML = '<div class="ryan-clark"></div> <p>Please wait while we turn your scan into a surface. It usually takes a minute or two. Read <a href="https://github.com/jakepruitt/thesis" target="blank">this</a> to find out how it works</p>';
+
+                    var req = new XMLHttpRequest();
+                    req.onerror = function(err) {
+                        console.log(err);
+                    };
+
+                    req.onload = function() {
+                        if (req.status !== 200) {
+                            alert(req.response);
+                        } else {
+                            loadGeometry(loader.parse(req.response));
+                            closeModal(); 
+                        }
+                    };
+
+                    req.open('POST', 'http://ec2-52-91-188-213.compute-1.amazonaws.com:8889/ascii-to-surface');
+                    req.overrideMimeType('text/plain; charset=x-user-defined-binary');
+                    req.withCredentials = true;
+                    req.responseType = 'arraybuffer';
+                    req.send(file);
+                }
+            }
 
             function onDocumentMouseMove( event ) {
                 event.preventDefault();
