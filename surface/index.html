@@ -150,6 +150,40 @@
                 color: #fff;
             }
 
+            .upload-panel {
+                background: #fff;
+                display: none;
+                padding-top: 20px;
+                padding-bottom: 20px;
+                padding-left: 40px;
+                padding-right: 40px;
+            }
+
+            .right-top {
+                top: 0;
+                right: 0;
+                position: absolute;
+            }
+
+            .round-bottomleft {
+                border-radius: 0 0 0 3px;
+            }
+
+            .button {
+                cursor:pointer;
+                text-align: center;
+                display: inline-block;
+                margin: 0px;
+                line-height: 20px;
+                font-size: 12px;
+                border-radius: 3px;
+                width: 100px;
+                background: #3887be;
+                color: #fff;
+                padding-top: 5px;
+                padding-bottom: 5px;
+            }
+
 		</style>
 	</head>
 	<body>
@@ -166,8 +200,16 @@
             </div>
         </div>
 
-		<script src="lib/three.min.js"></script>
+        <div class="upload-panel right-top round-bottomleft">
+            <a class="button" onclick="sendclipping()">Clip</a>
+        </div>
 
+		<script src="lib/three.js"></script>
+
+        <script src="clip.js"></script>
+        <script src="connected.js"></script>
+        <script src="volume.js"></script>
+        <script src="https://npmcdn.com/earcut@2.0.8/dist/earcut.min.js"></script>
 		<script src="lib/PLYLoader.js"></script>
 		<script src="lib/TrackballControls.js"></script>
 
@@ -179,9 +221,9 @@
 
 			var mesh = null, camera, cameraTarget, scene, renderer, controls;
 
-            var raycaster, point, mouse, clock, toggle = 0, intersection = null, lines = [], vertices = [], spheresIndex = 0, threshold = 0.1, pointSize = 0.05;
+            var selection, raycaster, point, mouse, clock, toggle = 0, intersection = null, lines = [], vertices = [], spheresIndex = 0, threshold = 0.1, pointSize = 0.05;
 
-            var clicked = false, movingline = null, createmode = false;
+            var clicked = false, movingline = null, createmode = false, selectmode = false;
 
             var loader;
 
@@ -207,8 +249,6 @@
 				// PLY file
 
 				loader = new THREE.PLYLoader();
-                /*
-                */
 
 				// Lights
 
@@ -234,6 +274,7 @@
 				renderer.shadowMap.enabled = true;
 				renderer.shadowMap.cullFace = THREE.CullFaceBack;
 
+                renderer.localClippingEnabled = true;
 
                 // Controls
                 controls = new THREE.TrackballControls(camera); 
@@ -258,12 +299,13 @@
 
                 var material = new THREE.MeshStandardMaterial( { color: 0x0055ff } );
                 material.side = THREE.DoubleSide;
-                //if (mesh !== null) scene.remove(mesh);
+                if (mesh !== null) scene.remove(mesh);
                 mesh = new THREE.Mesh( geometry, material );
 
                 mesh.position.x = -40.0;
                 mesh.position.y = -25.0;
                 mesh.scale.multiplyScalar( 0.1 );
+
 
                 scene.add( mesh );
             }
@@ -278,7 +320,7 @@
                 modal.style.display = 'none';
                 setTimeout(function() {
                     createmode = true;
-                }, 1000);
+                }, 2000);
             }
 
             function selectedFiles( files ) {
@@ -333,6 +375,29 @@
                 }
             }
 
+            function sendclipping() {
+                var material = new THREE.MeshStandardMaterial( { color: 0xee3124 } );
+                material.side = THREE.DoubleSide;
+
+                var z = vertices.reduce(function(memo,v,i) {
+                    return memo + v.position.z
+                }, 0) / vertices.length;
+                console.log(z);
+
+                var clipshape = new THREE.Shape(vertices.map(function(v) { return v.position; }));
+                var clipgeometry = new THREE.ShapeGeometry(clipshape);
+
+                object = new THREE.Mesh( clipgeometry, material );
+                object.position.set( 0, 0, z );
+                //scene.add( object );
+                var newGeom = toGeometry(clipMesh(mesh.geometry, z));
+                //console.log('Aaaaah new thing!', newGeom.faces.slice(0,50));
+                loadGeometry(newGeom);
+                setTimeout(function() {
+                    selectmode = true;
+                }, 2000);
+            }
+
             function onDocumentMouseMove( event ) {
                 event.preventDefault();
                 mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
@@ -343,7 +408,9 @@
                 event.preventDefault();
                 point.x = ( event.clientX / window.innerWidth ) * 2 - 1;
                 point.y = - (event.clientY / window.innerHeight ) * 2 + 1;
-                clicked = true;
+                if (selectmode || createmode) {
+                    clicked = true;
+                }
             }
 
             function onDocumentKeydown( event ) {
@@ -392,6 +459,7 @@
 
 				renderer.setSize( window.innerWidth, window.innerHeight );
 
+
 			}
 
 			function animate() {
@@ -407,6 +475,29 @@
                 var originalIntersection = null;
 
                 controls.update();
+
+                if (selectmode && mesh !== null) {
+                    raycaster.setFromCamera( mouse, camera );
+                    var intersections = raycaster.intersectObject( mesh );
+                    intersection = ( intersections.length ) > 0 ? intersections[ 0 ] : null;
+                    if (!selection) {
+                        selection = new THREE.Mesh( sphereGeometry, sphereMaterial );
+                        scene.add( selection );
+                        selection.scale.set( 1, 1, 1 );
+                    }
+                    if (intersection) {
+                        selection.position.copy( intersection.point );
+                    }
+
+                    if (clicked) {
+                        var newGeom = toGeometry(connected(intersection.faceIndex, mesh.geometry));
+                        loadGeometry(newGeom);
+                        var vol = volume(newGeom);
+                        document.getElementsByClassName('upload-panel')[0].innerHTML = '<strong>Volume: ' + vol + '</strong>';
+                        selectmode = false;
+                        clicked = false;
+                    }
+                }
 
                 if (createmode && mesh !== null) {
                     raycaster.setFromCamera( mouse, camera );
@@ -465,6 +556,8 @@
                         });
                         createmode = false;
                         document.body.className = 'default';
+                        document.getElementsByClassName('upload-panel')[0].style.display = 'block';
+                        clicked = false;
                     }
 
                     toggle += clock.getDelta();
