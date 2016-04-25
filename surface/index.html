@@ -133,6 +133,17 @@
                 white-space: nowrap;
             }
 
+            .button.clip-button {
+                width:36px;
+                margin-left:10px;
+            }
+
+            .clippy {
+                margin-top: -3px;
+                position: relative;
+                top: 3px;
+            }
+
             .ryan-clark {
                 text-align: center;
                 left: 0;
@@ -209,6 +220,7 @@
         <script src="clip.js"></script>
         <script src="connected.js"></script>
         <script src="volume.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.10/clipboard.min.js"></script>
         <script src="https://npmcdn.com/earcut@2.0.8/dist/earcut.min.js"></script>
 		<script src="lib/PLYLoader.js"></script>
 		<script src="lib/TrackballControls.js"></script>
@@ -317,9 +329,7 @@
             function closeModal() {
                 var modal = document.getElementsByClassName('modal-underlay')[0];
                 modal.style.display = 'none';
-                setTimeout(function() {
-                    createmode = true;
-                }, 2000);
+                createmode = true;
             }
 
             function selectedFiles( files ) {
@@ -381,20 +391,16 @@
                 var z = vertices.reduce(function(memo,v,i) {
                     return memo + v.position.z
                 }, 0) / vertices.length;
-                console.log(z);
 
                 var clipshape = new THREE.Shape(vertices.map(function(v) { return v.position; }));
                 var clipgeometry = new THREE.ShapeGeometry(clipshape);
 
                 object = new THREE.Mesh( clipgeometry, material );
                 object.position.set( 0, 0, z );
-                //scene.add( object );
                 var newGeom = toGeometry(clipMesh(mesh.geometry, z));
-                //console.log('Aaaaah new thing!', newGeom.faces.slice(0,50));
                 loadGeometry(newGeom);
-                setTimeout(function() {
-                    selectmode = true;
-                }, 2000);
+                document.getElementsByClassName('upload-panel')[0].innerHTML = '<strong>Select the pit</strong>';
+                selectmode = true;
             }
 
             function onDocumentMouseMove( event ) {
@@ -483,6 +489,7 @@
                         selection = new THREE.Mesh( sphereGeometry, sphereMaterial );
                         scene.add( selection );
                         selection.scale.set( 1, 1, 1 );
+                        selection.position.set(10000,1000,10000);
                     }
                     if (intersection) {
                         selection.position.copy( intersection.point );
@@ -492,7 +499,8 @@
                         var newGeom = toGeometry(connected(intersection.faceIndex, mesh.geometry));
                         loadGeometry(newGeom);
                         var vol = volume(newGeom);
-                        document.getElementsByClassName('upload-panel')[0].innerHTML = '<strong>Volume: ' + vol + ' nm<sup>3</sup></strong>';
+                        document.getElementsByClassName('upload-panel')[0].innerHTML = '<strong>Volume: <span id="vol">' + vol + '</span> nm<sup>3</sup></strong><a class="button clip-button" data-clipboard-target="#vol" data-clipboard-target="#foo"><img width="13" style="color:#fff;" class="clippy" src="images/clippy.svg" alt="Copy to clipboard"></a>';
+                        new Clipboard('.clip-button');
                         selectmode = false;
                         clicked = false;
                     }
