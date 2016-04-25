@@ -16,8 +16,19 @@ function asciiToPLY() {
     var start = false, stop = false;
     var finalstring = '';
     var linecount = 0;
+    var xpixels, ypixels, xscale = 1, yscale = 1;
     asciiToPLYTransform._transform = function(buf, enc, callback) {
         var line = buf.toString().trim();
+        var match;
+        if (match = /x\-pixels = (\d+)/gi.exec(line)) {
+            xpixels = Number(match[1]);
+        } else if (match = /y\-pixels = (\d+)/gi.exec(line)) {
+            ypixels = Number(match[1]);
+        } else if (match = /x\-length = (\d+)/gi.exec(line)) {
+            xscale = Number(match[1]) / xpixels;
+        } else if (match = /y\-length = (\d+)/gi.exec(line)) {
+            yscale = Number(match[1]) / ypixels;
+        }
         if (line == '# Start of Data:') {
             start = true;
             return callback();
@@ -31,7 +42,7 @@ function asciiToPLY() {
                 return callback();
             } else {
                 data.forEach(function(z,x) {
-                    finalstring += x + ' ' + y + ' ' + z/100 + '\n';
+                    finalstring += x*xscale + ' ' + y*yscale + ' ' + z + '\n';
                     linecount++;
                 });
                 y++;
