@@ -498,8 +498,8 @@
                     if (clicked && intersection) {
                         var newGeom = toGeometry(lid(connected(intersection.faceIndex, mesh.geometry),clipZ));
                         loadGeometry(newGeom);
-                        var vol = volume(newGeom);
-                        document.getElementsByClassName('upload-panel')[0].innerHTML = '<strong>Volume: <span id="vol">' + vol + '</span> nm<sup>3</sup></strong><a class="button clip-button" data-clipboard-target="#vol" data-clipboard-target="#foo"><img width="13" style="color:#fff;" class="clippy" src="images/clippy.svg" alt="Copy to clipboard"></a>';
+                        var vol = volume(newGeom)/1000000000;
+                        document.getElementsByClassName('upload-panel')[0].innerHTML = '<strong>Volume: <span id="vol">' + vol + '</span> &mu;m<sup>3</sup></strong><a class="button clip-button" data-clipboard-target="#vol" data-clipboard-target="#foo"><img width="13" style="color:#fff;" class="clippy" src="images/clippy.svg" alt="Copy to clipboard"></a>';
                         new Clipboard('.clip-button');
                         selectmode = false;
                         clicked = false;
