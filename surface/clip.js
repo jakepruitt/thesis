@@ -1,8 +1,3 @@
-if (true) {
-    earcut = window.earcut;
-} else {
-    earcut = require('earcut');
-}
 var N = {x:0,y:0,z:-1};
 
 function copy(obj) {
@@ -22,36 +17,6 @@ function cachedIndexOrNew(point, reverseTable, V) {
         point.visible = true;
         V.push(point);
         return index;
-    }
-}
-
-function findLoops(edges) {
-    var current = edges.shift();
-    var foundLoop = false;
-    var loop = [current];
-
-    var i = 0;
-    while (i < edges.length && foundLoop === false) {
-        if (edges[i][0] === current[1]) {
-            current = edges.splice(i, 1)[0];
-            loop.push(current);
-            i = 0;
-            if (loop[0][0] === current[1]) {
-                // loop is complete
-                foundLoop = true;
-                break;
-            }
-        } else {
-            i++;
-        }
-    }
-
-    if (edges.length === 0) {
-        return [];
-    } else if (foundLoop) {
-        return [loop].concat(findLoops(edges));
-    } else {
-        return findLoops(edges);
     }
 }
 
@@ -203,64 +168,8 @@ function clipMesh(mesh, z) {
         delete v.distance;
         return v;
     });
-    /*
-    var clippedLoops = findLoops(clippedEdges);
-    clippedLoops.forEach(function(loop) {
-        var flat = loop.map(function(l) { return l[0]; });
-        var verts = flat.reduce(function(verts, index) {
-            return verts.concat([V[index].x, V[index].y]);
-        }, []);
-        var tris = earcut(verts).reduce(function(tris, x) {
-            if (tris[tris.length-1].length === 3) {
-                tris.push([x]);
-            } else {
-                tris[tris.length-1].push(x);
-            }
-            return tris;
-        }, [[]]);
-        var rewindTris = tris.map(function(tri) {
-            if (tri[0] > tri[1] && tri[1] > tri[2]) {
-                return tri.reverse();
-            } else if (tri[0] < tri[1] && tri[1] > tri[2] && tri[0] < tri[2]) {
-                return tri.reverse();
-            } else {
-                return tri;
-            }
-        });
-        var faces = rewindTris.map(function(tri) {
-            return {
-                a:flat[tri[0]],
-                b:flat[tri[1]],
-                c:flat[tri[2]]
-            };
-        });
-
-        console.log(faces.length);
-        filteredF = filteredF.concat(faces);
-    });
-    */
 
     return {faces:filteredF,vertices:V};
-}
-
-function clipEdges(mesh, z) {
-    var c = -z;
-    var clipEdges = [];
-
-    mesh.faces.forEach(function(f) {
-        var da = dot(N, f.a) - c;
-        var db = dot(N, f.b) - c;
-        var dc = dot(N, f.c) - c;
-
-        var pointsAbove = [];
-        if (da >= 0) pointsAbove.push(f.a);
-        if (db >= 0) pointsAbove.push(f.b);
-        if (dc >= 0) pointsAbove.push(f.c);
-
-        if (pointsAbove.length === 2) {
-            clipEdges.push(pointsAbove);
-        }
-    });
 }
 
 function clipLine(line, z) {
@@ -315,7 +224,6 @@ function scale(v,a) {
 /*
 if (module) {
     module.exports.clipMesh = clipMesh;
-    module.exports.clipFace = clipFace;
     module.exports.clipPoint = clipPoint;
     module.exports.clipLine = clipLine;
 }

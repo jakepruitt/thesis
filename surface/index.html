@@ -218,10 +218,10 @@
 		<script src="lib/three.min.js"></script>
 
         <script src="clip.js"></script>
+        <script src="lid.js"></script>
         <script src="connected.js"></script>
         <script src="volume.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.10/clipboard.min.js"></script>
-        <script src="https://npmcdn.com/earcut@2.0.8/dist/earcut.min.js"></script>
 		<script src="lib/PLYLoader.js"></script>
 		<script src="lib/TrackballControls.js"></script>
 
@@ -233,7 +233,7 @@
 
 			var mesh = null, camera, cameraTarget, scene, renderer, controls;
 
-            var selection, raycaster, point, mouse, clock, toggle = 0, intersection = null, lines = [], vertices = [], spheresIndex = 0, threshold = 0.1, pointSize = 0.05;
+            var clipZ, selection, raycaster, point, mouse, clock, toggle = 0, intersection = null, lines = [], vertices = [], spheresIndex = 0, threshold = 0.1, pointSize = 0.05;
 
             var clicked = false, movingline = null, createmode = false, selectmode = false;
 
@@ -388,7 +388,7 @@
                 var material = new THREE.MeshStandardMaterial( { color: 0xee3124 } );
                 material.side = THREE.DoubleSide;
 
-                var z = vertices.reduce(function(memo,v,i) {
+                clipZ = vertices.reduce(function(memo,v,i) {
                     return memo + v.position.z
                 }, 0) / vertices.length;
 
@@ -396,8 +396,8 @@
                 var clipgeometry = new THREE.ShapeGeometry(clipshape);
 
                 object = new THREE.Mesh( clipgeometry, material );
-                object.position.set( 0, 0, z );
-                var newGeom = toGeometry(clipMesh(mesh.geometry, z));
+                object.position.set( 0, 0, clipZ );
+                var newGeom = toGeometry(clipMesh(mesh.geometry, clipZ));
                 loadGeometry(newGeom);
                 document.getElementsByClassName('upload-panel')[0].innerHTML = '<strong>Select the pit</strong>';
                 selectmode = true;
@@ -495,8 +495,8 @@
                         selection.position.copy( intersection.point );
                     }
 
-                    if (clicked) {
-                        var newGeom = toGeometry(connected(intersection.faceIndex, mesh.geometry));
+                    if (clicked && intersection) {
+                        var newGeom = toGeometry(lid(connected(intersection.faceIndex, mesh.geometry),clipZ));
                         loadGeometry(newGeom);
                         var vol = volume(newGeom);
                         document.getElementsByClassName('upload-panel')[0].innerHTML = '<strong>Volume: <span id="vol">' + vol + '</span> nm<sup>3</sup></strong><a class="button clip-button" data-clipboard-target="#vol" data-clipboard-target="#foo"><img width="13" style="color:#fff;" class="clippy" src="images/clippy.svg" alt="Copy to clipboard"></a>';
