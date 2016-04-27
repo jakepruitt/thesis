@@ -10,8 +10,11 @@
 				background-color: #000000;
 				margin: 0px;
 				overflow: hidden;
-                cursor: crosshair;
 			}
+
+            .crosshair {
+                cursor: crosshair;
+            }
 
             * {
                 -webkit-box-sizing: border-box;
@@ -133,9 +136,14 @@
                 white-space: nowrap;
             }
 
-            .button.clip-button {
+            .button.small-button {
                 width:36px;
                 margin-left:10px;
+                vertical-align:middle;
+            }
+
+            .button.crosshair-button {
+                padding-top:9px;
             }
 
             .clippy {
@@ -161,10 +169,10 @@
                 color: #fff;
             }
 
-            .upload-panel {
+            .tools-panel {
                 background: #fff;
-                display: none;
                 padding-top: 20px;
+                display: none;
                 padding-bottom: 20px;
                 padding-left: 40px;
                 padding-right: 40px;
@@ -211,8 +219,8 @@
             </div>
         </div>
 
-        <div class="upload-panel right-top round-bottomleft">
-            <a class="button" onclick="sendclipping()">Clip</a>
+        <div class="tools-panel right-top round-bottomleft">
+            Select a ring around the pit <a class="button small-button crosshair-button" onclick="return toggleCrosshair(this);"><img width="16" src="images/crosshair.svg"></a>
         </div>
 
 		<script src="lib/three.min.js"></script>
@@ -329,7 +337,8 @@
             function closeModal() {
                 var modal = document.getElementsByClassName('modal-underlay')[0];
                 modal.style.display = 'none';
-                createmode = true;
+                var tools = document.getElementsByClassName('tools-panel')[0];
+                tools.style.display = 'block';
             }
 
             function selectedFiles( files ) {
@@ -376,7 +385,7 @@
                         }
                     };
 
-                    req.open('POST', 'http://ec2-52-91-188-213.compute-1.amazonaws.com:8889/ascii-to-surface');
+                    req.open('POST', 'http://ec2-52-91-58-130.compute-1.amazonaws.com:8889/ascii-to-surface');
                     req.overrideMimeType('text/plain; charset=x-user-defined-binary');
                     req.withCredentials = false;
                     req.responseType = 'arraybuffer';
@@ -399,8 +408,26 @@
                 object.position.set( 0, 0, clipZ );
                 var newGeom = toGeometry(clipMesh(mesh.geometry, clipZ));
                 loadGeometry(newGeom);
-                document.getElementsByClassName('upload-panel')[0].innerHTML = '<strong>Select the pit</strong>';
+                document.getElementsByClassName('tools-panel')[0].innerHTML = '<strong>Select the pit</strong>';
                 selectmode = true;
+            }
+
+            function toggleCrosshair(elem) {
+                if (createmode) {
+                    createmode = false;
+                    var image = elem.getElementsByTagName('img')[0];
+                    image.src = 'images/crosshair.svg';
+                    image.width = 16;
+                    clicked = false;
+                } else {
+                    createmode = true;
+                    var image = elem.getElementsByTagName('img')[0]
+                    image.src = 'images/hand.svg';
+                    image.width = 30;
+                    document.body.className = 'crosshair';
+                    clicked = false;
+                }
+                return false;
             }
 
             function onDocumentMouseMove( event ) {
@@ -499,7 +526,7 @@
                         var newGeom = toGeometry(lid(connected(intersection.faceIndex, mesh.geometry),clipZ));
                         loadGeometry(newGeom);
                         var vol = volume(newGeom)/1000000000;
-                        document.getElementsByClassName('upload-panel')[0].innerHTML = '<strong>Volume: <span id="vol">' + vol + '</span> &mu;m<sup>3</sup></strong><a class="button clip-button" data-clipboard-target="#vol" data-clipboard-target="#foo"><img width="13" style="color:#fff;" class="clippy" src="images/clippy.svg" alt="Copy to clipboard"></a>';
+                        document.getElementsByClassName('tools-panel')[0].innerHTML = '<strong>Volume: <span id="vol">' + vol + '</span> &mu;m<sup>3</sup></strong><a class="button clip-button small-button" data-clipboard-target="#vol" data-clipboard-target="#foo"><img width="13" style="color:#fff;" class="clippy" src="images/clippy.svg" alt="Copy to clipboard"></a>';
                         new Clipboard('.clip-button');
                         selectmode = false;
                         clicked = false;
@@ -563,7 +590,7 @@
                         });
                         createmode = false;
                         document.body.className = 'default';
-                        document.getElementsByClassName('upload-panel')[0].style.display = 'block';
+                        document.getElementsByClassName('tools-panel')[0].innerHTML = '<a class="button" onclick="sendclipping()">Clip</a>';
                         clicked = false;
                     }
 
