@@ -31,3 +31,5 @@ My sources and guides will primarily be Dr. Hodges, Cameron Mercer and the rest 
 - https://github.com/mkazhdan/PoissonRecon
 - http://www.cs.jhu.edu/~misha/MyPapers/SGP06.pdf
 - http://www.cs.jhu.edu/~misha/MyPapers/ToG13.pdf
+- https://en.wikipedia.org/wiki/Age_of_the_universe
+- http://pubs.usgs.gov/gip/geotime/age.html
