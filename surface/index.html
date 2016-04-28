@@ -219,6 +219,8 @@
             </div>
         </div>
 
+        <div class="container"></div>
+
         <div class="tools-panel right-top round-bottomleft">
             Select a ring around the pit <a class="button small-button crosshair-button" onclick="return toggleCrosshair(this);"><img width="16" src="images/crosshair.svg"></a>
         </div>
@@ -241,7 +243,7 @@
 
 			var mesh = null, camera, cameraTarget, scene, renderer, controls;
 
-            var clipZ, selection, raycaster, point, mouse, clock, toggle = 0, intersection = null, lines = [], vertices = [], spheresIndex = 0, threshold = 0.1, pointSize = 0.05;
+            var clipZ, selection, raycaster, point, mouse, clock, toggle = 0, intersection = null, lines = [], clipHeights = [], vertices = [], spheresIndex = 0, threshold = 0.1, pointSize = 0.05;
 
             var clicked = false, movingline = null, createmode = false, selectmode = false;
 
@@ -259,7 +261,7 @@
                 point = new THREE.Vector2();
 
 				container = document.createElement( 'div' );
-				document.body.appendChild( container );
+				document.getElementsByClassName('container')[0].appendChild( container );
 
 				camera = new THREE.PerspectiveCamera(45.0, window.innerWidth / window.innerHeight, 0.1, 10000);
                 camera.position.z = 100;
@@ -366,6 +368,17 @@
                 reader.readAsBinaryString(files[0]);
             }
 
+            function selectZ(input) {
+                input.focus();
+            }
+
+            function updateZ(input) {
+                input.blur();
+                clipZ = Number(input.value);
+                object.position.set(0,0,clipZ*0.001);
+                console.log(object);
+            }
+
             function onUploadButtonClick( button ) {
                 if (button.className.indexOf('enabled') > -1) {
                     var container = document.getElementsByClassName('button-container')[0];
@@ -394,18 +407,7 @@
             }
 
             function sendclipping() {
-                var material = new THREE.MeshStandardMaterial( { color: 0xee3124 } );
-                material.side = THREE.DoubleSide;
-
-                clipZ = vertices.reduce(function(memo,v,i) {
-                    return memo + v.position.z
-                }, 0) / vertices.length;
-
-                var clipshape = new THREE.Shape(vertices.map(function(v) { return v.position; }));
-                var clipgeometry = new THREE.ShapeGeometry(clipshape);
-
-                object = new THREE.Mesh( clipgeometry, material );
-                object.position.set( 0, 0, clipZ );
+                scene.remove(object);
                 var newGeom = toGeometry(clipMesh(mesh.geometry, clipZ));
                 loadGeometry(newGeom);
                 document.getElementsByClassName('tools-panel')[0].innerHTML = '<strong>Select the pit</strong>';
@@ -577,6 +579,15 @@
                         movingline.geometry.vertices = [intersection.point, intersection.point];
                         movingline.geometry.scale(1,1,1);
 
+                        console.log(mesh.geometry.faces[intersection.faceIndex]);
+                        var aIndex = mesh.geometry.faces[intersection.faceIndex].a;
+                        var bIndex = mesh.geometry.faces[intersection.faceIndex].b;
+                        var cIndex = mesh.geometry.faces[intersection.faceIndex].c;
+
+                        clipHeights.push(mesh.geometry.vertices[aIndex].z);
+                        clipHeights.push(mesh.geometry.vertices[bIndex].z);
+                        clipHeights.push(mesh.geometry.vertices[cIndex].z);
+
                         vertices.push(vertex);
 
                         clicked = false;
@@ -585,12 +596,28 @@
                         movingline.geometry.verticesNeedUpdate = true;
                         lines.push(movingline);
 
-                        lines.forEach(function(line) {
-                            midpoint(line);
-                        });
                         createmode = false;
                         document.body.className = 'default';
-                        document.getElementsByClassName('tools-panel')[0].innerHTML = '<a class="button" onclick="sendclipping()">Clip</a>';
+
+                        clipZ = clipHeights.reduce(function(memo,z) {
+                            return memo + z;
+                        }, 0) / clipHeights.length;
+
+                        document.getElementsByClassName('tools-panel')[0].innerHTML = '<em>Z:</em> <input onclick="selectZ(this)" onchange="updateZ(this)" class="zClick" type="text" value="' + clipZ + '"></input> <a class="button" onclick="sendclipping()">Clip</a>';
+
+                        var material = new THREE.MeshStandardMaterial( { color: 0xee3124 } );
+                        material.side = THREE.DoubleSide;
+
+
+                        var clipshape = new THREE.Shape(vertices.map(function(v) {
+                            return v.position;
+                        }));
+                        var clipgeometry = new THREE.ShapeGeometry(clipshape);
+
+                        object = new THREE.Mesh( clipgeometry, material );
+                        object.position.set( 0, 0, clipZ*0.001 );
+                        scene.add(object);
+
                         clicked = false;
                     }
 
@@ -600,11 +627,6 @@
 
 				renderer.render( scene, camera );
 			}
-
-            function midpoint(line) {
-                var midpoint = new THREE.Mesh( sphereGeometry, sphereMaterial);
-            }
-
 		</script>
 	</body>
 </html>
