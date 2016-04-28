@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/jakepruitt/thesis#readme",
   "dependencies": {
+    "aws-sdk": "^2.3.6",
     "cors": "^2.7.1",
     "earcut": "^2.1.1",
     "express": "^4.13.4",

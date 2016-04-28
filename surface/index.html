@@ -55,12 +55,18 @@
                 width: 400px;
             }
 
-            .modal-form {
+            .modal-body {
                 display:block;
                 padding-top: 20px;
                 padding-bottom: 20px;
                 padding-left: 40px;
                 padding-right: 40px;
+            }
+
+            .file-list li {
+                text-decoration: underline;
+                color: #3887be;
+                cursor:pointer;
             }
 
             .leave-modal {
@@ -208,21 +214,21 @@
 	<body>
         <div class="modal-underlay default">
             <div class="modal-container">
-                <form class="modal-form">
+                <form class="modal-body">
                     <h3>New scan</h3>
                     <div class="button-container">
                         <div class="select-button"><span class="select-text">Select an ascii file</span> <input accept=".asc" onchange="selectedFiles(this.files)" type='file'/></div>
                         <a class="upload-button" onclick="onUploadButtonClick(this)">Upload</a>
                     </div>
                 </form>
-                <a class="leave-modal" onclick="skipUpload()">Or explore our default scan &#8594;</a>
+                <a class="leave-modal" onclick="listUploads()">Or explore an uploaded scan &#8594;</a>
             </div>
         </div>
 
         <div class="container"></div>
 
         <div class="tools-panel right-top round-bottomleft">
-            Select a ring around the pit <a class="button small-button crosshair-button" onclick="return toggleCrosshair(this);"><img width="16" src="images/crosshair.svg"></a>
+            <span class="helper-text">This is the <a href="http://github.com/jakepruitt/thesis" target="_blank">reconstructed surface</a> of your pit</span> <a class="button small-button crosshair-button" onclick="return toggleCrosshair(this);"><img width="16" src="images/crosshair.svg"></a>
         </div>
 
 		<script src="lib/three.min.js"></script>
@@ -238,16 +244,19 @@
 		<script>
 
             var file;
+            var filename;
 
 			var container;
 
 			var mesh = null, camera, cameraTarget, scene, renderer, controls;
 
+            var host = 'http://ec2-54-172-46-160.compute-1.amazonaws.com';
+
             var clipZ, selection, raycaster, point, mouse, clock, toggle = 0, intersection = null, lines = [], clipHeights = [], vertices = [], spheresIndex = 0, threshold = 0.1, pointSize = 0.05;
 
             var clicked = false, movingline = null, createmode = false, selectmode = false;
 
-            var loader;
+            var loader, helperText;
 
             var sphereMaterial, sphereGeometry;
 
@@ -336,6 +345,55 @@
                 closeModal();
             }
 
+            function getscan(item) {
+                var filename = item.innerHTML;
+                var req = new XMLHttpRequest();
+                req.onerror = function(err) {
+                    alert(err);
+                };
+
+                req.onload = function() {
+                    if (req.status !== 200) {
+                        alert(req.response);
+                    } else {
+                        // code here
+                        loadGeometry(loader.parse(req.response));
+                        closeModal(); 
+                    }
+                };
+
+                req.open('GET', host + ':8889/surface/' + filename);
+                req.overrideMimeType('text/plain; charset=x-user-defined-binary');
+                req.withCredentials = false;
+                req.responseType = 'arraybuffer';
+                req.send();
+            }
+
+            function listUploads() {
+                var req = new XMLHttpRequest();
+                req.onerror = function(err) {
+                    alert(err);
+                };
+
+                req.onload = function() {
+                    if (req.status !== 200) {
+                        alert(req.response);
+                    } else {
+                        // code here
+                        var list = JSON.parse(req.response);
+                        var html = list.reduce(function(html, item) {
+                            return html + '<li><a onclick="getscan(this)">' + item + '</a></li>';
+                        }, '<div class="modal-body"><h3>Previous scans</h3><ul class="file-list">');
+                        html += '</ul></div>';
+                        document.getElementsByClassName('modal-container')[0].innerHTML = html;
+                    }
+                };
+
+                req.open('GET', host + ':8889/list');
+                req.withCredentials = false;
+                req.send();
+            }
+
             function closeModal() {
                 var modal = document.getElementsByClassName('modal-underlay')[0];
                 modal.style.display = 'none';
@@ -348,7 +406,8 @@
                 reader.addEventListener('load', function(loadEvent) {
                     if (loadEvent.target.result) {
                         var selectSpan = document.getElementsByClassName('select-text')[0];
-                        selectSpan.innerHTML = files[0].name;
+                        filename = files[0].name;
+                        selectSpan.innerHTML = filename;
 
                         var uploadButton = document.getElementsByClassName('upload-button')[0];
                         uploadButton.className += ' enabled';
@@ -376,7 +435,6 @@
                 input.blur();
                 clipZ = Number(input.value);
                 object.position.set(0,0,clipZ*0.001);
-                console.log(object);
             }
 
             function onUploadButtonClick( button ) {
@@ -386,7 +444,7 @@
 
                     var req = new XMLHttpRequest();
                     req.onerror = function(err) {
-                        console.log(err);
+                        alert(err);
                     };
 
                     req.onload = function() {
@@ -398,7 +456,7 @@
                         }
                     };
 
-                    req.open('POST', 'http://ec2-52-90-160-162.compute-1.amazonaws.com:8889/ascii-to-surface');
+                    req.open('POST', host + ':8889/ascii-to-surface?filename=' + filename);
                     req.overrideMimeType('text/plain; charset=x-user-defined-binary');
                     req.withCredentials = false;
                     req.responseType = 'arraybuffer';
@@ -425,6 +483,8 @@
                     createmode = true;
                     var image = elem.getElementsByTagName('img')[0]
                     image.src = 'images/hand.svg';
+                    helperText = document.getElementsByClassName('helper-text')[0];
+                    helperText.innerHTML = 'Select a ring around the pit';
                     image.width = 30;
                     document.body.className = 'crosshair';
                     clicked = false;
@@ -487,21 +547,16 @@
 			}
 
 			function onWindowResize() {
-
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
 
 				renderer.setSize( window.innerWidth, window.innerHeight );
-
-
 			}
 
 			function animate() {
-
 				requestAnimationFrame( animate );
 
 				render();
-
 			}
 
 
@@ -560,6 +615,7 @@
 
                     if (clicked && originalIntersection === null) {
                         raycaster.setFromCamera( point, camera );
+                        helperText.innerHTML = 'Click the starting point to close the loop';
                         var intersections = raycaster.intersectObject( mesh );
                         intersection = ( intersections.length ) > 0 ? intersections[ 0 ] : null;
 
@@ -579,7 +635,6 @@
                         movingline.geometry.vertices = [intersection.point, intersection.point];
                         movingline.geometry.scale(1,1,1);
 
-                        console.log(mesh.geometry.faces[intersection.faceIndex]);
                         var aIndex = mesh.geometry.faces[intersection.faceIndex].a;
                         var bIndex = mesh.geometry.faces[intersection.faceIndex].b;
                         var cIndex = mesh.geometry.faces[intersection.faceIndex].c;

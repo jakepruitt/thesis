@@ -15,6 +15,9 @@ var port = process.env.PORT || 8889;
 var normalize = path.resolve(__dirname, '../bin/normalize');
 var poissonRecon = path.resolve(__dirname, '../bin/PoissonRecon');
 
+var AWS = require('aws-sdk');
+var s3 = new AWS.S3();
+
 server.use(morgan('dev'));
 
 server.use('*',cors({origin:'*',maxAge:60e4}));
@@ -80,7 +83,8 @@ server.post('/poisson-reconstruction', function(req,res,next) {
 });
 
 server.post('/ascii-to-surface', function(req,res,next) {
-    console.log('hit the post endpoint?');
+    var filename = req.query.filename.replace('.asc', '.ply');
+
     var temp = 'temp.ply';
     var tempNormal = 'temp-normal.ply';
     var tempRecon = 'temp-reconstructed.ply';
@@ -105,15 +109,49 @@ server.post('/ascii-to-surface', function(req,res,next) {
                     console.error(stdout);
                     return next(err);
                 }
-                var reconstream = fs.createReadStream(tempRecon);
-                reconstream.pipe(res);
-                res.on('finish', function() {
-                    fs.unlinkSync(temp);
-                    fs.unlinkSync(tempNormal);
-                    fs.unlinkSync(tempRecon);
+                var reconstream1= fs.createReadStream(tempRecon);
+
+                var putstream = s3.putObject({
+                    Bucket:'volume-thesis',
+                    Key: filename,
+                    Body: reconstream1
+                }, function(err, data) {
+                    if (err) return next(err);
+
+                    var reconstream2= fs.createReadStream(tempRecon);
+                    reconstream2.pipe(res);
+                    res.on('finish', function() {
+                        fs.unlinkSync(temp);
+                        fs.unlinkSync(tempNormal);
+                        fs.unlinkSync(tempRecon);
+                    });
                 });
             });
         });
+    });
+});
+
+server.get('/list', function(req, res, next) {
+    s3.listObjects({
+        Bucket:'volume-thesis'
+    }, function(err, data) {
+        if (err) return next(err);
+        var filenames = data.Contents.map(function(content) {
+            return content.Key;
+        });
+
+        res.json(filenames);
+    });
+});
+
+server.get('/surface/:filename',function(req,res,next) {
+    s3.getObject({
+        Bucket:'volume-thesis',
+        Key:req.params.filename
+    }, function(err, data) {
+        if (err) return next(err);
+
+        res.send(data.Body);
     });
 });
 

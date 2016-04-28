@@ -33,13 +33,10 @@ function reverse(edges) {
 function findEdges(mesh, z) {
     var threshold = 0.00000000001;
     return mesh.faces.reduce(function(topEdges, face, i) {
-        if (face.a === 48737 || face.b === 48737 || face.c === 48737) console.log('aha found one',face);
-        if (face.a === 48736 || face.b === 48736 || face.c === 48736) console.log('aha found two',face);
         var aTop = Math.abs(mesh.vertices[face.a].z - z) < threshold;
         var bTop = Math.abs(mesh.vertices[face.b].z - z) < threshold;
         var cTop = Math.abs(mesh.vertices[face.c].z - z) < threshold;
 
-        if (aTop && bTop && cTop) console.log('woah ho ho hey there', face);
         if (aTop && bTop) return topEdges.concat([[face.a, face.b]]);
         else if (bTop && cTop) return topEdges.concat([[face.b, face.c]]);
         else if (cTop && aTop) return topEdges.concat([[face.c, face.a]]);
