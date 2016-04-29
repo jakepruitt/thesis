@@ -28,6 +28,7 @@ My sources and guides will primarily be Dr. Hodges, Cameron Mercer and the rest 
 - https://github.com/prototypable/vcglib
 - https://github.com/cnr-isti-vclab/meshlabjs
 - https://github.com/svn2github/meshlab
+- https://github.com/Microsoft/Mesh-processing-library
 - https://github.com/mkazhdan/PoissonRecon
 - http://www.cs.jhu.edu/~misha/MyPapers/SGP06.pdf
 - http://www.cs.jhu.edu/~misha/MyPapers/ToG13.pdf
