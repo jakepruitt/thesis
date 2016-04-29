@@ -99,9 +99,9 @@ function clipMesh(mesh, z) {
                 // Add another face here with the same orientation
                 var d = cachedIndexOrNew(ad[1], reverseTable, V);
                 F.push({
-                    a:F[i].a,
-                    b:F[i].c,
                     c: d,
+                    b:F[i].c,
+                    a:F[i].a,
                     visible: true
                 });
                 // Add cd to set of clipped out edges
@@ -115,9 +115,9 @@ function clipMesh(mesh, z) {
                 // Add another face for b,d,c
                 var d =cachedIndexOrNew(dc[0],reverseTable, V); 
                 F.push({
-                    a:F[i].c,
-                    b:F[i].b,
                     c:d,
+                    b:F[i].b,
+                    a:F[i].c,
                     visible: true
                 });
                 clippedEdges.push([d, F[i].b]);
@@ -130,29 +130,29 @@ function clipMesh(mesh, z) {
                 // Add another face for acd
                 var d = cachedIndexOrNew(cd[1], reverseTable, V); 
                 F.push({
-                    a:F[i].a,
-                    b:F[i].c,
                     c:d,
+                    b:F[i].c,
+                    a:F[i].a,
                     visible:true
                 });
                 clippedEdges.push([F[i].a, d]);
             } else if (a.visible && !b.visible && !c.visible) {
                 var ab = clipLine([a,b],z);
                 var ac = clipLine([a,c],z);
-                F[i].b = cachedIndexOrNew(ab[1], reverseTable, V);
-                F[i].c = cachedIndexOrNew(ac[1], reverseTable, V);
+                F[i].c = cachedIndexOrNew(ab[1], reverseTable, V);
+                F[i].b = cachedIndexOrNew(ac[1], reverseTable, V);
                 clippedEdges.push([F[i].c, F[i].b]);
             } else if (!a.visible && b.visible && !c.visible) {
                 var bc = clipLine([b,c],z);
                 var ba = clipLine([b,a],z);
-                F[i].a = cachedIndexOrNew(ba[1], reverseTable, V);
-                F[i].c = cachedIndexOrNew(bc[1], reverseTable, V);
+                F[i].c = cachedIndexOrNew(ba[1], reverseTable, V);
+                F[i].a = cachedIndexOrNew(bc[1], reverseTable, V);
                 clippedEdges.push([F[i].a, F[i].c]);
             } else if (!a.visible && !b.visible && c.visible) {
                 var cb = clipLine([c,b],z);
                 var ca = clipLine([c,a],z);
-                F[i].a = cachedIndexOrNew(ca[1], reverseTable, V);
-                F[i].b = cachedIndexOrNew(cb[1], reverseTable, V);
+                F[i].b = cachedIndexOrNew(ca[1], reverseTable, V);
+                F[i].a = cachedIndexOrNew(cb[1], reverseTable, V);
                 clippedEdges.push([F[i].b, F[i].a]);
             }
         }
