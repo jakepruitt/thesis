@@ -10,7 +10,3 @@ function volume(geom) {
             );
     }, 0));
 }
-
-/*
-if (module) module.exports = volume;
-*/
