@@ -34,3 +34,4 @@ My sources and guides will primarily be Dr. Hodges, Cameron Mercer and the rest 
 - http://www.cs.jhu.edu/~misha/MyPapers/ToG13.pdf
 - https://en.wikipedia.org/wiki/Age_of_the_universe
 - http://pubs.usgs.gov/gip/geotime/age.html
+- https://www.cs.sfu.ca/~haoz/teaching/cmpt464/references/92_Hoppe_SurfRecon.pdf
