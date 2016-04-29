@@ -444,11 +444,13 @@
 
                     var req = new XMLHttpRequest();
                     req.onerror = function(err) {
+                        console.error(err);
                         alert(err);
                     };
 
                     req.onload = function() {
                         if (req.status !== 200) {
+                            console.error(req.response);
                             alert(req.response);
                         } else {
                             loadGeometry(loader.parse(req.response));
